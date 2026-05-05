@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+void* pthread_func(void* arg)
+{
+    //设置允许取消
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
+    //设置取消类型，延迟取消
+    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+
+    while(1)
+    {
+        printf("子线程运行中......\n");
+        printf("进入禁用取消区\n");
+        //禁用取消
+         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE,NULL);
+         sleep(5);
+
+         printf("退出禁用区\n");
+          pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
+          sleep(1);
+    }
+}
+
+int main()
+{
+    pthread_t pid;
+    void* ret = NULL;
+    pthread_create(&pid,NULL,pthread_func,NULL);
+
+
+    sleep(3);
+    printf("发送cancel命令\n");
+
+
+
+    pthread_cancel(pid);
+
+    pthread_join(pid,&ret);
+
+    if(ret==PTHREAD_CANCELED)//取消成功ret会变成PTHREAD_CANCELED
+    {
+        printf("子线程取消成功\n");
+    }
+    return 0;
+}
